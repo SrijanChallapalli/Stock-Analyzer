@@ -1,0 +1,89 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background: url('investment-meme.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    transition: background 0.5s, color 0.5s;
+}
+
+.night-mode {
+    background: black !important;
+    color: white !important;
+}
+
+nav {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    margin: 0 15px;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.container {
+    margin-top: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.logo {
+    width: 150px;
+    height: auto;
+}
+
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#result {
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+#chart-container img {
+    margin-top: 20px;
+    max-width: 100%;
+    border: 2px solid white;
+    border-radius: 5px;
+}
+.gallery {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.gallery img {
+    width: auto;  /* Maintain original aspect ratio */
+    height: 200px; /* Set a consistent height */
+    max-width: 100%;
+    border-radius: 10px;
+    object-fit: cover; /* Ensures image fills space properly */
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s;
+}
+
+.gallery img:hover {
+    transform: scale(1.1);
+}
+

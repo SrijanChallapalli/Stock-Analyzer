@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analyzer</title>
+
+    <!-- Load jQuery First -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/about">About Me</a>
+    </nav>
+
+    <button id="toggle-mode">🌙 Night Mode</button>
+
+    <div class="container">
+        <img src="{{ url_for('static', filename='bull-logo.png') }}" alt="Stock Bull Logo" class="logo">
+        <h1>Stock Analyzer</h1>
+
+        <form id="stock-form">
+            <input type="text" id="ticker" name="ticker" placeholder="Enter Stock Ticker (e.g., AAPL)" required>
+
+            <label for="time-period">Time Period: <span id="slider-value">6 months</span></label>
+            <input type="range" id="time-period" min="1" max="60" step="1" value="6">
+
+            <button type="submit">Analyze</button>
+        </form>
+
+        <div id="result"></div>
+        <div id="chart-container"></div>
+        <div id="ai-analysis"></div>
+    </div>
+
+    <!-- JavaScript Code -->
+    <script>
+        $(document).ready(function() {
+            $("#stock-form").submit(function(event) {
+                event.preventDefault();
+                let ticker = $("#ticker").val().toUpperCase();
+                let period = $("#time-period").val() + "mo";
+
+                $("#result").html("<p>Fetching data, please wait...</p>");
+                $("#chart-container").html("");
+                $("#ai-analysis").html("");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/analyze",
+                    data: { ticker: ticker, period: period },
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.error) {
+                            $("#result").html(`<p style="color: red;">${response.error}</p>`);
+                            $("#chart-container").html("");
+                            $("#ai-analysis").html("");
+                        } else {
+                            $("#result").html(`
+                                <h2>Analysis for ${response.ticker}</h2>
+                                <p><b>Latest Price:</b> $${response.latest_price}</p>
+                                <p><b>RSI:</b> ${response.rsi}</p>
+                                <p><b>Upper Bollinger Band:</b> $${response.upper_band}</p>
+                                <p><b>Lower Bollinger Band:</b> $${response.lower_band}</p>
+                                <p><b>Recommendation:</b> ${response.recommendation}</p>
+                            `);
+                            $("#chart-container").html(`<img src="${response.chart_url}" alt="Stock Price Chart">`);
+                            $("#ai-analysis").html(`<h3>AI Analysis</h3><p>${response.ai_analysis}</p>`);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error:", status, error);
+                        $("#result").html(`<p style="color: red;">An error occurred. Please check the console.</p>`);
+                    }
+                });
+            });
+
+            // Night Mode Toggle
+            $("#toggle-mode").click(function() {
+                $("body").toggleClass("night-mode");
+            });
+        });
+    </script>
+
+</body>
+</html>

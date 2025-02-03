@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Me</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/about">About Me</a>
+    </nav>
+
+    <div class="container">
+        <h1>About Me</h1>
+        <p>Hi, I'm <b>Srijan Challapalli</b>, a <b>12th-grade student</b> at <b>Independence High School</b> and <b>Monroe Advanced Technical Academy</b>.
+        I'm passionate about <b>technology, finance, and software development</b>. Currently, I'm an intern at <b>Comtrix Healthcare</b>, where I get hands-on experience working on innovative solutions.</p>
+
+        <p>Outside of coding, I enjoy <b>lifting, playing video games, and football</b>—a sport that has shaped my discipline and teamwork skills. As I prepare to head to <b>college</b>, I'm excited to continue my journey in <b>computer science, AI, and finance.</b></p>
+
+        <h2>💡 Why I Built This Project</h2>
+        <p>I wanted to create a platform where <b>all the necessary information for making stock investment decisions</b> is available in one place.
+        This project was originally built to help members of my <b>investment club</b> learn how to analyze stocks effectively. Instead of searching multiple sources for stock charts, news, and analysis, I envisioned a single tool that provides everything in one simple and interactive dashboard.</p>
+
+        <h2>📊 What This Project Does</h2>
+        <p>This <b>Stock Analyzer</b> provides:</p>
+        <ul>
+            <li>📈 <b>Stock Price Charts</b> with key trends</li>
+            <li>📊 <b>Technical Analysis</b> (Bollinger Bands, RSI, Moving Averages)</li>
+            <li>🤖 <b>AI-Generated Insights</b> based on market conditions</li>
+            <li>🌙 <b>Night Mode Toggle</b> for a better user experience</li>
+        </ul>
+
+        <h2>🚀 Future Plans</h2>
+        <p>I'm always working on improvements! Here's what’s coming next:</p>
+        <ul>
+            <li>📰 <b>Live Stock News</b> – See the latest news related to a stock when you search its ticker.</li>
+            <li>🌎 <b>Daily Market Headlines</b> – Display the most trending financial news on the home page.</li>
+            <li>🤖 <b>AI-Powered Stock Sentiment</b> – Analyzing market sentiment to provide smarter recommendations.</li>
+        </ul>
+
+        <h2>📬 Connect With Me</h2>
+        <p>If you have <b>suggestions, feedback, or career opportunities</b>, feel free to reach out!</p>
+        <p>📸 Instagram: <b>@srijan.challapalli</b></p>
+        <p>💰 Any small donation would go a long way in improving this project! Venmo: <b>@schallapalli</b></p>
+
+        <!-- Image Gallery -->
+        <h2>📸 Gallery</h2>
+        <div class="gallery">
+            <img src="{{ url_for('static', filename='about1.jpg') }}" alt="Image 1">
+            <img src="{{ url_for('static', filename='about2.jpg') }}" alt="Image 2">
+            <img src="{{ url_for('static', filename='about3.jpg') }}" alt="Image 3">
+            <img src="{{ url_for('static', filename='about4.jpg') }}" alt="Image 4">
+        </div>
+    </div>
+</body>
+</html>
