@@ -222,3 +222,35 @@ button:hover {
 ::-webkit-scrollbar-thumb:hover {
     background: #0056b3;
 }
+/* Analyst Recommendations */
+.analyst-recommendations {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.recommendation-bar {
+    display: flex;
+    height: 35px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #2c2c2c;
+    margin-top: 10px;
+}
+
+.recommendation-bar div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    padding: 0 10px;
+    transition: width 0.5s ease-in-out;
+}
+
+.recommendation-bar .buy { background-color: #4CAF50; } /* Green */
+.recommendation-bar .hold { background-color: #FFC107; } /* Yellow */
+.recommendation-bar .sell { background-color: #F44336; } /* Red */
+
+.recommendation-bar i {
+    margin-right: 8px;
+}
