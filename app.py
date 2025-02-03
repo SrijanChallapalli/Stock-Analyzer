@@ -6,12 +6,41 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import random
-
-import matplotlib
-matplotlib.use('Agg')  # Prevents GUI errors with Matplotlib
+import requests
+from bs4 import BeautifulSoup
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 # Ensure Flask Serves Static Files Properly
 app = Flask(__name__, static_folder="static")
+
+# Global variable to store CNBC articles
+articles = []
+
+def fetch_articles():
+    global articles
+    url = "https://www.cnbc.com/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    # Extract article titles and links
+    articles = []
+    for item in soup.select('a.Card-title'):
+        title = item.get_text(strip=True)
+        link = item['href']
+        if not link.startswith('http'):
+            link = f"https://www.cnbc.com{link}"
+        articles.append({"title": title, "link": link})
+
+    print("Fetched new articles from CNBC")
+
+# Schedule the fetch_articles function to run every hour
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=fetch_articles, trigger="interval", hours=1)
+scheduler.start()
+
+# Shut down the scheduler when the app exits
+atexit.register(lambda: scheduler.shutdown())
 
 class StockAnalyzer:
     def __init__(self, ticker, period):
@@ -33,9 +62,11 @@ class StockAnalyzer:
         delta = self.data['Close'].diff()
         gain = np.where(delta > 0, delta, 0)
         loss = np.where(delta < 0, -delta, 0)
-        avg_gain = pd.Series(gain).rolling(window=period).mean()
-        avg_loss = pd.Series(loss).rolling(window=period).mean()
-        rs = avg_gain / avg_loss
+
+        avg_gain = pd.Series(gain).rolling(window=period, min_periods=1).mean()
+        avg_loss = pd.Series(loss).rolling(window=period, min_periods=1).mean()
+
+        rs = avg_gain / avg_loss.replace(0, 1)  # Avoid division by zero
         self.data['RSI'] = 100 - (100 / (1 + rs))
 
     def calculate_bollinger_bands(self):
@@ -72,7 +103,7 @@ class StockAnalyzer:
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', articles=articles)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -114,4 +145,5 @@ def about():
     return render_template('about.html')
 
 if __name__ == '__main__':
+    fetch_articles()  # Fetch articles on startup
     app.run(debug=True)
