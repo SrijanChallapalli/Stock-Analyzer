@@ -75,6 +75,42 @@ class StockAnalyzer:
         self.data['Upper Band'] = ma + (2 * std)
         self.data['Lower Band'] = ma - (2 * std)
 
+    def generate_recommendation(self):
+        # Get the latest RSI and Bollinger Bands values
+        latest_rsi = self.data['RSI'].iloc[-1]
+        latest_close = self.data['Close'].iloc[-1]
+        upper_band = self.data['Upper Band'].iloc[-1]
+        lower_band = self.data['Lower Band'].iloc[-1]
+
+        # Recommendation logic
+        if latest_rsi < 30 and latest_close < lower_band:
+            return "Buy"  # Oversold and below lower Bollinger Band
+        elif latest_rsi > 70 and latest_close > upper_band:
+            return "Sell"  # Overbought and above upper Bollinger Band
+        else:
+            return "Hold"  # Neutral conditions
+
+    def generate_ai_analysis(self):
+        analysis_templates = [
+            f"{self.ticker} has been experiencing volatility in the past few months. The stock’s moving averages suggest a potential shift in momentum. If the market continues its current trend, this stock could either stabilize or face further fluctuations. Investors should consider macroeconomic factors and sector trends before making any decisions.",
+            f"Technical indicators for {self.ticker} show interesting movement. The RSI suggests that the stock might be overbought, while the Bollinger Bands indicate increased volatility. This could be a sign of upcoming price corrections. Investors looking for stability might want to wait before entering a position.",
+            f"The performance of {self.ticker} suggests mixed signals. While the moving averages indicate strength, external market conditions might play a critical role in determining the next trend. Analysts often recommend monitoring earnings reports and upcoming news to make informed decisions.",
+            f"{self.ticker} has been consolidating within a defined range. If a breakout occurs, it could present an opportunity for short-term traders. Long-term investors, however, might want to wait for more stability before making a move."
+        ]
+        return random.choice(analysis_templates) + " This is not financial advice."
+
+    def get_analyst_recommendations(self):
+        # Mock data for analyst recommendations
+        analyst_data = {
+            "AAPL": {"buy": 65, "hold": 25, "sell": 10},
+            "GOOGL": {"buy": 70, "hold": 20, "sell": 10},
+            "TSLA": {"buy": 40, "hold": 40, "sell": 20},
+            "AMZN": {"buy": 60, "hold": 30, "sell": 10},
+            "MSFT": {"buy": 75, "hold": 20, "sell": 5},
+        }
+        # Default values if ticker not found
+        return analyst_data.get(self.ticker, {"buy": 50, "hold": 30, "sell": 20})
+
     def generate_chart(self):
         plt.figure(figsize=(10, 5))
         plt.plot(self.data.index, self.data['Close'], label="Stock Price", color='blue')
@@ -91,15 +127,6 @@ class StockAnalyzer:
         chart_url = base64.b64encode(img.getvalue()).decode()
         plt.close()
         return f"data:image/png;base64,{chart_url}"
-
-    def generate_ai_analysis(self):
-        analysis_templates = [
-            f"{self.ticker} has been experiencing volatility in the past few months. The stock’s moving averages suggest a potential shift in momentum. If the market continues its current trend, this stock could either stabilize or face further fluctuations. Investors should consider macroeconomic factors and sector trends before making any decisions.",
-            f"Technical indicators for {self.ticker} show interesting movement. The RSI suggests that the stock might be overbought, while the Bollinger Bands indicate increased volatility. This could be a sign of upcoming price corrections. Investors looking for stability might want to wait before entering a position.",
-            f"The performance of {self.ticker} suggests mixed signals. While the moving averages indicate strength, external market conditions might play a critical role in determining the next trend. Analysts often recommend monitoring earnings reports and upcoming news to make informed decisions.",
-            f"{self.ticker} has been consolidating within a defined range. If a breakout occurs, it could present an opportunity for short-term traders. Long-term investors, however, might want to wait for more stability before making a move."
-        ]
-        return random.choice(analysis_templates) + " This is not financial advice."
 
 @app.route('/')
 def home():
@@ -125,9 +152,10 @@ def analyze():
     upper_band = safe_value(analyzer.data['Upper Band'].iloc[-1])
     lower_band = safe_value(analyzer.data['Lower Band'].iloc[-1])
 
-    recommendation = analyzer.generate_ai_analysis()
+    recommendation = analyzer.generate_recommendation()
     chart_url = analyzer.generate_chart()
     ai_analysis = analyzer.generate_ai_analysis()
+    analyst_recommendations = analyzer.get_analyst_recommendations()
 
     return jsonify({
         "ticker": ticker,
@@ -137,7 +165,8 @@ def analyze():
         "lower_band": lower_band,
         "recommendation": recommendation,
         "chart_url": chart_url,
-        "ai_analysis": ai_analysis
+        "ai_analysis": ai_analysis,
+        "analyst_recommendations": analyst_recommendations
     })
 
 @app.route('/about')
