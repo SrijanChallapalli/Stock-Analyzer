@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Analyzer</title>
-
-    <!-- Load jQuery First -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -16,7 +13,7 @@
         <a href="/about">About Me</a>
     </nav>
 
-    <button id="toggle-mode">🌙 Night Mode</button>
+    <button id="toggle-mode">🌙 Dark Mode</button>
 
     <div class="container">
         <img src="{{ url_for('static', filename='bull-logo.png') }}" alt="Stock Bull Logo" class="logo">
@@ -25,8 +22,8 @@
         <form id="stock-form">
             <input type="text" id="ticker" name="ticker" placeholder="Enter Stock Ticker (e.g., AAPL)" required>
 
-            <label for="time-period">Time Period: <span id="slider-value">6 months</span></label>
-            <input type="range" id="time-period" min="1" max="60" step="1" value="6">
+            <label for="time-period">Time Period: <span id="slider-value">6mo</span></label>
+            <input type="range" id="time-period" min="1" max="11" step="1" value="5">
 
             <button type="submit">Analyze</button>
         </form>
@@ -34,15 +31,52 @@
         <div id="result"></div>
         <div id="chart-container"></div>
         <div id="ai-analysis"></div>
+
+        <h2>Latest News</h2>
+        <div id="news-container">
+            {% for article in articles %}
+                <div class="news-item">
+                    <a href="{{ article.link }}" target="_blank">{{ article.title }}</a>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
-    <!-- JavaScript Code -->
     <script>
         $(document).ready(function() {
+            const periodMap = {
+                1: '1d',
+                2: '5d',
+                3: '1mo',
+                4: '3mo',
+                5: '6mo',
+                6: '1y',
+                7: '2y',
+                8: '5y',
+                9: '10y',
+                10: 'ytd',
+                11: 'max'
+            };
+
+            // Update slider display
+            function updatePeriodDisplay(value) {
+                const period = periodMap[value];
+                $("#slider-value").text(period);
+                return period;
+            }
+
+            // Initial display update
+            updatePeriodDisplay($("#time-period").val());
+
+            $("#time-period").on("input", function() {
+                updatePeriodDisplay($(this).val());
+            });
+
             $("#stock-form").submit(function(event) {
                 event.preventDefault();
-                let ticker = $("#ticker").val().toUpperCase();
-                let period = $("#time-period").val() + "mo";
+                const ticker = $("#ticker").val().toUpperCase();
+                const periodValue = $("#time-period").val();
+                const period = periodMap[periodValue];
 
                 $("#result").html("<p>Fetching data, please wait...</p>");
                 $("#chart-container").html("");
@@ -56,8 +90,6 @@
                     success: function(response) {
                         if (response.error) {
                             $("#result").html(`<p style="color: red;">${response.error}</p>`);
-                            $("#chart-container").html("");
-                            $("#ai-analysis").html("");
                         } else {
                             $("#result").html(`
                                 <h2>Analysis for ${response.ticker}</h2>
@@ -84,6 +116,5 @@
             });
         });
     </script>
-
 </body>
 </html>
