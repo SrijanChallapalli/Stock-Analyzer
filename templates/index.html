@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Analyzer</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <a href="/about">About Me</a>
     </nav>
 
-    <button id="toggle-mode">🌙 Dark Mode</button>
+    <button id="toggle-mode">🌙 Night Mode</button>
 
     <div class="container">
         <img src="{{ url_for('static', filename='bull-logo.png') }}" alt="Stock Bull Logo" class="logo">
@@ -97,7 +98,21 @@
                                 <p><b>RSI:</b> ${response.rsi}</p>
                                 <p><b>Upper Bollinger Band:</b> $${response.upper_band}</p>
                                 <p><b>Lower Bollinger Band:</b> $${response.lower_band}</p>
-                                <p><b>Recommendation:</b> ${response.recommendation}</p>
+                                <p><b>AI Recommendation:</b> <span class="recommendation ${response.recommendation.toLowerCase()}">${response.recommendation}</span></p>
+                                <div class="analyst-recommendations">
+                                    <h3>Analyst Recommendations</h3>
+                                    <div class="recommendation-barAAC">
+                                        <div class="buy" style="width: ${response.analyst_recommendations.buy}%">
+                                            <i class="fas fa-thumbs-up"></i> ${response.analyst_recommendations.buy}% Buy
+                                        </div>
+                                        <div class="hold" style="width: ${response.analyst_recommendations.hold}%">
+                                            <i class="fas fa-hand-holding"></i> ${response.analyst_recommendations.hold}% Hold
+                                        </div>
+                                        <div class="sell" style="width: ${response.analyst_recommendations.sell}%">
+                                            <i class="fas fa-thumbs-down"></i> ${response.analyst_recommendations.sell}% Sell
+                                        </div>
+                                    </div>
+                                </div>
                             `);
                             $("#chart-container").html(`<img src="${response.chart_url}" alt="Stock Price Chart">`);
                             $("#ai-analysis").html(`<h3>AI Analysis</h3><p>${response.ai_analysis}</p>`);
