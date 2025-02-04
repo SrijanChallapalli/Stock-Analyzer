@@ -66,12 +66,10 @@ class StockAnalyzer:
         delta = self.data['Close'].diff()
         gain = delta.clip(lower=0)
         loss = -delta.clip(upper=0)
-        # Use a minimum period equal to the window to get a proper average
         avg_gain = gain.rolling(window=period, min_periods=period).mean()
         avg_loss = loss.rolling(window=period, min_periods=period).mean()
         rs = avg_gain / avg_loss.replace(0, 1e-10)  # Avoid division by zero
         self.data['RSI'] = 100 - (100 / (1 + rs))
-        # Fill initial NaN values (if any) with 0 or another value if desired
         self.data['RSI'] = self.data['RSI'].fillna(0)
 
     def calculate_bollinger_bands(self):
@@ -166,12 +164,33 @@ class StockAnalyzer:
             xaxis=dict(title="Date"),
             yaxis=dict(title="Price (USD)"),
             yaxis2=dict(title="RSI", overlaying="y", side="right", range=[0, 100]),
-            # Move the legend to the right outside the chart area
             legend=dict(x=1.05, y=1),
-            # Increase right margin to accommodate the legend
             margin=dict(l=40, r=150, t=40, b=40)
         )
         fig = go.Figure(data=[candlestick, macd_line, signal_line, rsi_line], layout=layout)
+        return fig.to_html(full_html=False)
+
+    def generate_price_ma_chart(self):
+        # Generate a separate graph with just the price and the 10-day moving average.
+        price_line = go.Scatter(
+            x=self.data.index,
+            y=self.data['Close'],
+            mode='lines',
+            name='Price'
+        )
+        ma_line = go.Scatter(
+            x=self.data.index,
+            y=self.data['Moving Average (10)'],
+            mode='lines',
+            name='10-Day MA'
+        )
+        layout = go.Layout(
+            title=f"{self.ticker} Price and 10-Day MA",
+            xaxis=dict(title="Date"),
+            yaxis=dict(title="Price (USD)"),
+            margin=dict(l=40, r=40, t=40, b=40)
+        )
+        fig = go.Figure(data=[price_line, ma_line], layout=layout)
         return fig.to_html(full_html=False)
 
 @app.route('/')
@@ -189,13 +208,13 @@ def analyze():
     analyzer.calculate_rsi()  # Fixed RSI calculation
     analyzer.calculate_bollinger_bands()
     fundamentals = analyzer.get_fundamentals()
-    # Convert all fundamentals values using safe_value
     for key, value in fundamentals.items():
         fundamentals[key] = safe_value(value)
     
     recommendation = analyzer.generate_recommendation()
-    analysis_text = analyzer.generate_analysis()  # Headline now "Analysis"
+    analysis_text = analyzer.generate_analysis()
     chart_url = analyzer.generate_chart()
+    price_ma_chart = analyzer.generate_price_ma_chart()  # New chart with just price and 10-day MA
     
     latest_price = safe_value(analyzer.data['Close'].iloc[-1])
     rsi = safe_value(analyzer.data['RSI'].iloc[-1])
@@ -210,6 +229,7 @@ def analyze():
         "lower_band": lower_band,
         "recommendation": recommendation,
         "chart_url": chart_url,
+        "price_ma_chart": price_ma_chart,  # Return the new chart's HTML
         "analysis": analysis_text,
         "fundamentals": fundamentals,
         "analyst_recommendations": analyzer.get_analyst_recommendations()
