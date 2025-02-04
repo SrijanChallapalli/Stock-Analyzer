@@ -90,7 +90,9 @@ form {
     margin-top: 20px;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="email"],
+input[type="password"] {
     width: 80%;
     max-width: 300px;
     padding: 10px;
@@ -149,43 +151,26 @@ button:hover {
     box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.3);
 }
 
-/* Analyst Recommendations */
-.analyst-recommendations {
-    margin-top: 20px;
-    text-align: left;
-}
-
-.recommendation-bar {
+/* Image Gallery */
+.gallery {
     display: flex;
-    height: 30px;
-    border-radius: 5px;
-    overflow: hidden;
-    background: #e0e0e0;
-}
-
-.recommendation-bar div {
-    display: flex;
-    align-items: center;
     justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 14px;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
 }
 
-.recommendation-bar .buy {
-    background-color: #4CAF50; /* Green */
+.gallery img {
+    width: 220px;
+    height: 150px;
+    border-radius: 10px;
+    object-fit: cover;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease-in-out;
 }
 
-.recommendation-bar .hold {
-    background-color: #FFC107; /* Yellow */
-}
-
-.recommendation-bar .sell {
-    background-color: #F44336; /* Red */
-}
-
-.recommendation-bar i {
-    margin-right: 5px;
+.gallery img:hover {
+    transform: scale(1.1);
 }
 
 /* News Section */
@@ -238,4 +223,43 @@ button:hover {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #0056b3;
+}
+
+/* Analyst Recommendations */
+.analyst-recommendations {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.recommendation-bar {
+    display: flex;
+    height: 30px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #e0e0e0;
+}
+
+.recommendation-bar div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.recommendation-bar .buy {
+    background-color: #4CAF50; /* Green */
+}
+
+.recommendation-bar .hold {
+    background-color: #FFC107; /* Yellow */
+}
+
+.recommendation-bar .sell {
+    background-color: #F44336; /* Red */
+}
+
+.recommendation-bar i {
+    margin-right: 5px;
 }
