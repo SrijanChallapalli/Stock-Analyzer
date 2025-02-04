@@ -34,6 +34,18 @@ scheduler.add_job(func=fetch_articles, trigger="interval", hours=1)
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 
+def safe_value(value):
+    """
+    Convert numeric value to rounded value.
+    If value is NaN or an error occurs, return "N/A".
+    """
+    try:
+        if pd.isna(value):
+            return "N/A"
+        return round(value, 2)
+    except Exception:
+        return "N/A"
+
 class StockAnalyzer:
     def __init__(self, ticker, period):
         self.ticker = ticker
@@ -44,7 +56,7 @@ class StockAnalyzer:
         stock = yf.Ticker(self.ticker)
         self.data = stock.history(period=self.period)
         if self.data.empty:
-            return False
+            return False  # No data found, invalid ticker
         self.data['Moving Average (10)'] = self.data['Close'].rolling(window=10).mean()
         self.data['Daily Return'] = self.data['Close'].pct_change()
         return True
@@ -55,7 +67,7 @@ class StockAnalyzer:
         loss = np.where(delta < 0, -delta, 0)
         avg_gain = pd.Series(gain).rolling(window=period, min_periods=1).mean()
         avg_loss = pd.Series(loss).rolling(window=period, min_periods=1).mean()
-        # Avoid division by zero
+        # Avoid division by zero by replacing 0 with a very small number
         avg_loss = avg_loss.replace(0, 1e-10)
         rs = avg_gain / avg_loss
         self.data['RSI'] = 100 - (100 / (1 + rs))
@@ -169,21 +181,23 @@ def analyze():
     analyzer = StockAnalyzer(ticker, period)
     if not analyzer.fetch_data():
         return jsonify({"error": "Invalid ticker or no data found."})
+    
     analyzer.calculate_rsi()
     analyzer.calculate_bollinger_bands()
     fundamentals = analyzer.get_fundamentals()
+    # Convert all fundamentals values using safe_value
+    for key, value in fundamentals.items():
+        fundamentals[key] = safe_value(value)
+    
     recommendation = analyzer.generate_recommendation()
-    analysis_text = analyzer.generate_analysis()  # Changed headline from AI Analysis to Analysis
+    analysis_text = analyzer.generate_analysis()  # Headline now "Analysis"
     chart_url = analyzer.generate_chart()
-    def safe_value(value):
-        try:
-            return round(value, 2)
-        except:
-            return "N/A"
+    
     latest_price = safe_value(analyzer.data['Close'].iloc[-1])
     rsi = safe_value(analyzer.data['RSI'].iloc[-1])
     upper_band = safe_value(analyzer.data['Upper Band'].iloc[-1])
     lower_band = safe_value(analyzer.data['Lower Band'].iloc[-1])
+    
     return jsonify({
         "ticker": ticker,
         "latest_price": latest_price,
