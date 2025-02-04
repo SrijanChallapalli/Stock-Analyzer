@@ -3,62 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Analysis Website</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Stock Analyzer</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-    <!-- Navbar -->
     <nav>
-        <a href="#">Home</a>
-        <a href="#">Analysis</a>
-        <a href="#">News</a>
-        <a href="#">About</a>
+        <a href="/">Home</a> |
+        <a href="/about">About Me</a> |
+        <a href="/account">Account</a> |
+        <a href="/info">Info</a>
     </nav>
 
-    <!-- Toggle Dark Mode Button -->
-    <button id="toggle-mode">Toggle Dark Mode</button>
+    <button id="toggle-mode">🌙 Night Mode</button>
 
-    <!-- Main Container -->
     <div class="container">
-        <h1>Stock Analysis</h1>
-        <img src="logo.png" alt="Logo" class="logo">
+        <img src="{{ url_for('static', filename='bull-logo.png') }}" alt="Stock Bull Logo" class="logo">
+        <h1>Stock Analyzer</h1>
 
-        <!-- Stock Input Form -->
         <form id="stock-form">
-            <input type="text" id="stock-symbol" placeholder="Enter Stock Symbol" required>
+            <input type="text" id="ticker" name="ticker" placeholder="Enter Stock Ticker (e.g., AAPL)" required>
+            <label for="time-period">Time Period: <span id="slider-value">6mo</span></label>
+            <input type="range" id="time-period" min="1" max="11" step="1" value="5">
             <button type="submit">Analyze</button>
         </form>
 
-        <!-- Results Display -->
         <div id="result"></div>
+        <div id="chart-container"></div>
+        <div id="ai-analysis"></div>
 
-        <!-- Chart Container -->
-        <div id="chart-container">
-            <canvas id="stock-chart"></canvas>
-        </div>
-
-        <!-- Analyst Recommendations -->
-        <div class="analyst-recommendations">
-            <h3>Analyst Recommendations</h3>
-            <div class="recommendation-bar">
-                <div class="buy">Buy <i class="fas fa-thumbs-up"></i></div>
-                <div class="hold">Hold</div>
-                <div class="sell">Sell <i class="fas fa-thumbs-down"></i></div>
-            </div>
-        </div>
-
-        <!-- News Section -->
+        <h2>Latest News</h2>
         <div id="news-container">
-            <h3>Latest News</h3>
-            <div class="news-item">
-                <a href="#">Market Update: Stock Performance Today</a>
-            </div>
+            {% for article in articles %}
+                <div class="news-item">
+                    <a href="{{ article.link }}" target="_blank">{{ article.title }}</a>
+                </div>
+            {% endfor %}
         </div>
-
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        $(document).ready(function() {
+            const periodMap = {
+                1: '1d',
+                2: '5d',
+                3: '1mo',
+                4: '3mo',
+                5: '6mo',
+                6: '1y',
+                7: '2y',
+                8: '5y',
+                9: '10y',
+                10: 'ytd',
+                11: 'max'
+            };
+
+            function updatePeriodDisplay(value) {
+                const period = periodMap[value];
+                $("#slider-value").text(period);
+                return period;
+            }
+            updatePeriodDisplay($("#time-period").val());
+
+            $("#time-period").on("input", function() {
+                updatePeriodDisplay($(this).val());
+            });
+
+            $("#stock-form").submit(function(event) {
+                event.preventDefault();
+                const ticker = $("#ticker").val().toUpperCase();
+                const periodValue = $("#time-period").val();
+                const period = periodMap[periodValue];
+
+                $("#result").html("<p>Fetching data, please wait...</p>");
+                $("#chart-container").html("");
+                $("#ai-analysis").html("");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/analyze",
+                    data: { ticker: ticker, period: period },
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.error) {
+                            $("#result").html(`<p style="color: red;">${response.error}</p>`);
+                        } else {
+                            $("#result").html(`
+                                <h2>Analysis for ${response.ticker}</h2>
+                                <p><b>Latest Price:</b> $${response.latest_price}</p>
+                                <p><b>RSI:</b> ${response.rsi}</p>
+                                <p><b>Upper Bollinger Band:</b> $${response.upper_band}</p>
+                                <p><b>Lower Bollinger Band:</b> $${response.lower_band}</p>
+                                <p><b>Recommendation:</b> <span class="recommendation ${response.recommendation.toLowerCase()}">${response.recommendation}</span></p>
+                                <div class="analyst-recommendations">
+                                    <h3>Analyst Recommendations</h3>
+                                    <div class="recommendation-bar">
+                                        <div class="buy" style="width: ${response.analyst_recommendations.buy}%">
+                                            <i class="fas fa-thumbs-up"></i> ${response.analyst_recommendations.buy}% Buy
+                                        </div>
+                                        <div class="hold" style="width: ${response.analyst_recommendations.hold}%">
+                                            <i class="fas fa-hand-holding"></i> ${response.analyst_recommendations.hold}% Hold
+                                        </div>
+                                        <div class="sell" style="width: ${response.analyst_recommendations.sell}%">
+                                            <i class="fas fa-thumbs-down"></i> ${response.analyst_recommendations.sell}% Sell
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                            $("#chart-container").html(response.chart_url);
+                            $("#ai-analysis").html(`<h3>Analysis</h3><p>${response.analysis}</p>`);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error:", status, error);
+                        $("#result").html(`<p style="color: red;">An error occurred. Please check the console.</p>`);
+                    }
+                });
+            });
+
+            $("#toggle-mode").click(function() {
+                $("body").toggleClass("night-mode");
+            });
+        });
+    </script>
 </body>
 </html>
