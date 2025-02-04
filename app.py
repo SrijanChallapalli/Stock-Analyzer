@@ -36,8 +36,8 @@ atexit.register(lambda: scheduler.shutdown())
 
 def safe_value(value):
     """
-    Convert numeric value to rounded value.
-    If value is NaN or an error occurs, return "N/A".
+    Convert a numeric value to a rounded value.
+    If the value is NaN or an error occurs, return "N/A".
     """
     try:
         if pd.isna(value):
@@ -62,15 +62,17 @@ class StockAnalyzer:
         return True
 
     def calculate_rsi(self, period=14):
+        # Standard RSI calculation
         delta = self.data['Close'].diff()
-        gain = np.where(delta > 0, delta, 0)
-        loss = np.where(delta < 0, -delta, 0)
-        avg_gain = pd.Series(gain).rolling(window=period, min_periods=1).mean()
-        avg_loss = pd.Series(loss).rolling(window=period, min_periods=1).mean()
-        # Avoid division by zero by replacing 0 with a very small number
-        avg_loss = avg_loss.replace(0, 1e-10)
-        rs = avg_gain / avg_loss
+        gain = delta.clip(lower=0)
+        loss = -delta.clip(upper=0)
+        # Use a minimum period equal to the window to get a proper average
+        avg_gain = gain.rolling(window=period, min_periods=period).mean()
+        avg_loss = loss.rolling(window=period, min_periods=period).mean()
+        rs = avg_gain / avg_loss.replace(0, 1e-10)  # Avoid division by zero
         self.data['RSI'] = 100 - (100 / (1 + rs))
+        # Fill initial NaN values (if any) with 0 or another value if desired
+        self.data['RSI'] = self.data['RSI'].fillna(0)
 
     def calculate_bollinger_bands(self):
         ma = self.data['Close'].rolling(window=20).mean()
@@ -164,8 +166,10 @@ class StockAnalyzer:
             xaxis=dict(title="Date"),
             yaxis=dict(title="Price (USD)"),
             yaxis2=dict(title="RSI", overlaying="y", side="right", range=[0, 100]),
-            legend=dict(x=0, y=1.2),
-            margin=dict(l=40, r=40, t=40, b=40)
+            # Move the legend to the right outside the chart area
+            legend=dict(x=1.05, y=1),
+            # Increase right margin to accommodate the legend
+            margin=dict(l=40, r=150, t=40, b=40)
         )
         fig = go.Figure(data=[candlestick, macd_line, signal_line, rsi_line], layout=layout)
         return fig.to_html(full_html=False)
@@ -182,7 +186,7 @@ def analyze():
     if not analyzer.fetch_data():
         return jsonify({"error": "Invalid ticker or no data found."})
     
-    analyzer.calculate_rsi()
+    analyzer.calculate_rsi()  # Fixed RSI calculation
     analyzer.calculate_bollinger_bands()
     fundamentals = analyzer.get_fundamentals()
     # Convert all fundamentals values using safe_value
