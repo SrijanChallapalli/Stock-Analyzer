@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Information - Stock Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/about">About Me</a> |
+        <a href="/account">Account</a> |
+        <a href="/info">Info</a>
+    </nav>
+
+    <div class="container">
+        <h1>Information & Explanations</h1>
+        <h2>Technical Indicators</h2>
+        <ul>
+            <li><b>MACD:</b> Moving Average Convergence Divergence – indicates trend momentum by comparing two EMAs.</li>
+            <li><b>RSI:</b> Relative Strength Index – shows if a stock is overbought or oversold (range 0–100).</li>
+            <li><b>Bollinger Bands:</b> Measure volatility and identify potential price reversals.</li>
+            <li><b>SMA:</b> Simple Moving Average – smooths out price data to highlight trends.</li>
+            <li><b>EMA:</b> Exponential Moving Average – similar to SMA but gives more weight to recent prices.</li>
+        </ul>
+        <h2>Fundamental Analysis</h2>
+        <ul>
+            <li><b>P/E Ratio:</b> Price-to-Earnings – shows how much investors are willing to pay per dollar of earnings.</li>
+            <li><b>P/B Ratio:</b> Price-to-Book – compares market value to the book value of a company.</li>
+            <li><b>ROE:</b> Return on Equity – measures profitability relative to shareholder equity.</li>
+            <li><b>ROA:</b> Return on Assets – indicates how efficiently a company uses its assets.</li>
+            <li><b>Debt-to-Equity:</b> Indicates a company’s financial leverage and risk.</li>
+            <li><b>Dividend Yield:</b> The percentage return from dividends.</li>
+            <li><b>Free Cash Flow:</b> Cash generated from operations, indicating financial health.</li>
+            <li><b>Revenue Growth:</b> Long-term growth trend of a company’s sales.</li>
+            <li><b>Profit Margin:</b> The percentage of revenue that turns into profit.</li>
+        </ul>
+        <h2>Visualization</h2>
+        <p>The chart is generated using Plotly. It features a candlestick chart for stock prices, with overlays for MACD (and its Signal Line) as well as RSI plotted on a secondary axis (range 0–100) to easily spot overbought or oversold conditions.</p>
+        <h2>Crypto Feature</h2>
+        <p><b>Note:</b> The crypto feature is currently in beta. To view cryptocurrency data, use the crypto ticker (e.g., Bitcoin uses BTC-USD). Crypto markets are highly unpredictable—invest at your own risk!</p>
+    </div>
+</body>
+</html>
