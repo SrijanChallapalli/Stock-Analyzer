@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, jsonify
 import numpy as np
 import pandas as pd
 import yfinance as yf
-import matplotlib
-matplotlib.use('Agg')  # Use non-GUI backend for headless environments
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -13,7 +11,7 @@ from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
-# Ensure Flask serves static files properly
+# Ensure Flask Serves Static Files Properly
 app = Flask(__name__, static_folder="static")
 
 # Global variable to store CNBC articles
@@ -29,11 +27,10 @@ def fetch_articles():
     articles = []
     for item in soup.select('a.Card-title'):
         title = item.get_text(strip=True)
-        link = item.get('href')
-        if link and not link.startswith('http'):
+        link = item['href']
+        if not link.startswith('http'):
             link = f"https://www.cnbc.com{link}"
-        if title and link:
-            articles.append({"title": title, "link": link})
+        articles.append({"title": title, "link": link})
 
     print("Fetched new articles from CNBC")
 
@@ -56,7 +53,7 @@ class StockAnalyzer:
         self.data = stock.history(period=self.period)
 
         if self.data.empty:
-            return False  # No data found, invalid ticker or period
+            return False  # No data found, invalid ticker
         self.data['Moving Average (10)'] = self.data['Close'].rolling(window=10).mean()
         self.data['Daily Return'] = self.data['Close'].pct_change()
         return True
@@ -69,8 +66,7 @@ class StockAnalyzer:
         avg_gain = pd.Series(gain).rolling(window=period, min_periods=1).mean()
         avg_loss = pd.Series(loss).rolling(window=period, min_periods=1).mean()
 
-        # Replace zeros to avoid division by zero
-        rs = avg_gain / avg_loss.replace(0, 1)
+        rs = avg_gain / avg_loss.replace(0, 1)  # Avoid division by zero
         self.data['RSI'] = 100 - (100 / (1 + rs))
 
     def calculate_bollinger_bands(self):
@@ -80,11 +76,13 @@ class StockAnalyzer:
         self.data['Lower Band'] = ma - (2 * std)
 
     def generate_recommendation(self):
+        # Get the latest RSI and Bollinger Bands values
         latest_rsi = self.data['RSI'].iloc[-1]
         latest_close = self.data['Close'].iloc[-1]
         upper_band = self.data['Upper Band'].iloc[-1]
         lower_band = self.data['Lower Band'].iloc[-1]
 
+        # Recommendation logic
         if latest_rsi < 30 and latest_close < lower_band:
             return "Buy"  # Oversold and below lower Bollinger Band
         elif latest_rsi > 70 and latest_close > upper_band:
@@ -110,6 +108,7 @@ class StockAnalyzer:
             "AMZN": {"buy": 60, "hold": 30, "sell": 10},
             "MSFT": {"buy": 75, "hold": 20, "sell": 5},
         }
+        # Default values if ticker not found
         return analyst_data.get(self.ticker, {"buy": 50, "hold": 30, "sell": 20})
 
     def generate_chart(self):
@@ -135,44 +134,40 @@ def home():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    try:
-        ticker = request.form['ticker'].upper()
-        period = request.form['period']
-        analyzer = StockAnalyzer(ticker, period)
+    ticker = request.form['ticker'].upper()
+    period = request.form['period']
+    analyzer = StockAnalyzer(ticker, period)
 
-        if not analyzer.fetch_data():
-            return jsonify({"error": "Invalid ticker or no data found."}), 400
+    if not analyzer.fetch_data():
+        return jsonify({"error": "Invalid ticker or no data found."})
 
-        analyzer.calculate_rsi()
-        analyzer.calculate_bollinger_bands()
+    analyzer.calculate_rsi()
+    analyzer.calculate_bollinger_bands()
 
-        def safe_value(value):
-            return round(value, 2) if not np.isnan(value) else "N/A"
+    def safe_value(value):
+        return round(value, 2) if not np.isnan(value) else "N/A"
 
-        latest_price = safe_value(analyzer.data['Close'].iloc[-1])
-        rsi = safe_value(analyzer.data['RSI'].iloc[-1])
-        upper_band = safe_value(analyzer.data['Upper Band'].iloc[-1])
-        lower_band = safe_value(analyzer.data['Lower Band'].iloc[-1])
+    latest_price = safe_value(analyzer.data['Close'].iloc[-1])
+    rsi = safe_value(analyzer.data['RSI'].iloc[-1])
+    upper_band = safe_value(analyzer.data['Upper Band'].iloc[-1])
+    lower_band = safe_value(analyzer.data['Lower Band'].iloc[-1])
 
-        recommendation = analyzer.generate_recommendation()
-        chart_url = analyzer.generate_chart()
-        ai_analysis = analyzer.generate_ai_analysis()
-        analyst_recommendations = analyzer.get_analyst_recommendations()
+    recommendation = analyzer.generate_recommendation()
+    chart_url = analyzer.generate_chart()
+    ai_analysis = analyzer.generate_ai_analysis()
+    analyst_recommendations = analyzer.get_analyst_recommendations()
 
-        return jsonify({
-            "ticker": ticker,
-            "latest_price": latest_price,
-            "rsi": rsi,
-            "upper_band": upper_band,
-            "lower_band": lower_band,
-            "recommendation": recommendation,
-            "chart_url": chart_url,
-            "ai_analysis": ai_analysis,
-            "analyst_recommendations": analyst_recommendations
-        })
-    except Exception as e:
-        app.logger.error(f"Error during /analyze: {e}")
-        return jsonify({"error": "An unexpected error occurred."}), 500
+    return jsonify({
+        "ticker": ticker,
+        "latest_price": latest_price,
+        "rsi": rsi,
+        "upper_band": upper_band,
+        "lower_band": lower_band,
+        "recommendation": recommendation,
+        "chart_url": chart_url,
+        "ai_analysis": ai_analysis,
+        "analyst_recommendations": analyst_recommendations
+    })
 
 @app.route('/about')
 def about():
